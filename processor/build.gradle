@@ -1,0 +1,26 @@
+apply plugin: 'java'
+
+println "processor"
+
+sourceSets {
+    main {
+        java{
+            srcDir 'src/com/ntkachov'
+        }
+        resources{
+            srcDir 'src/resources'
+        }
+    }
+}
+
+jar{
+    baseName = 'processor'
+    version  = '1.0'
+    destinationDir = file('../main/jars')
+}
+
+
+dependencies{
+    compile files('/Library/Java/JavaVirtualMachines/jdk1.7.0_71.jdk/Contents/Home/lib/tools.jar');
+}
+

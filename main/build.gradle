@@ -1,0 +1,19 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+println "main"
+
+sourceSets {
+    main {
+        java{
+            srcDir 'src/com/ntkachov'
+        }
+        resources{
+            srcDir 'src/resources'
+        }
+    }
+}
+
+dependencies {
+    //compile files('jars/processor-1.0.jar')
+}

@@ -1,0 +1,5 @@
+.gradle/1.2/taskArtifacts
+.gradle
+.idea
+out
+build
