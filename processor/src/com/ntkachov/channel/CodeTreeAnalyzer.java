@@ -14,29 +14,26 @@ import javax.tools.Diagnostic;
  */
 public class CodeTreeAnalyzer extends TreePathScanner<Object, Trees> {
 
-    private final Messager messager;
-
-    public CodeTreeAnalyzer(Messager messager) {
+    public CodeTreeAnalyzer() {
         super();
-        this.messager = messager;
     }
 
     @Override
     public Object visitMethod(MethodTree node, Trees trees) {
-        messager.printMessage(Diagnostic.Kind.WARNING, "Method:" + node.getName().toString());
+//        Logger.d("Method:" + node.getName().toString());
         return super.visitMethod(node, trees);
     }
 
     @Override
     public Object visitVariable(VariableTree node, Trees trees) {
-        messager.printMessage(Diagnostic.Kind.WARNING, "Variable:" + node.getName().toString());
+//        Logger.d("Variable:" + node.getName().toString());
         return super.visitVariable(node, trees);
     }
 
     //This is how we can see if our
     @Override
     public Object visitExpressionStatement(ExpressionStatementTree node, Trees trees) {
-        messager.printMessage(Diagnostic.Kind.WARNING, "Expression:" + node.getExpression().toString());
+        Logger.d("Expression:" + node.getExpression().toString() + " " + trees.getSourcePositions().getStartPosition(this.getCurrentPath().getCompilationUnit(), node));
         return super.visitExpressionStatement(node, trees);
     }
 }

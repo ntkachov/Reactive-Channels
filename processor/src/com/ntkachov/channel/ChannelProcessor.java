@@ -1,4 +1,7 @@
 package com.ntkachov.channel;
+import com.ntkachov.channel.policy.ChannelPolicyException;
+import com.ntkachov.channel.policy.Policy;
+import com.ntkachov.channel.policy.StrictPolicy;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 
@@ -25,6 +28,9 @@ public class ChannelProcessor extends AbstractProcessor {
     private Messager messager;
     private Trees trees;
 
+    private Targets targets;
+    private Policy policy;
+
     public ChannelProcessor() {
 
     }
@@ -36,34 +42,46 @@ public class ChannelProcessor extends AbstractProcessor {
         elementUtils = processingEnv.getElementUtils();
         filer = processingEnv.getFiler();
         messager = processingEnv.getMessager();
+        targets = new Targets();
+        policy = new StrictPolicy();
+        Logger.setMessager(messager);
         this.trees = Trees.instance(processingEnv);
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         messager.printMessage(Diagnostic.Kind.NOTE, "Processing Channels");
+        for(Element channelElement : roundEnv.getElementsAnnotatedWith(Channel.class)){
+            Channel annotation = channelElement.getAnnotation(Channel.class);
+            String[] variable = annotation.value();
+            targets.addTarget(variable);
+            walkElementTree(channelElement);
+        }
+
+        Logger.d("Targets: " + targets.toString());
 
         for (Element annotatedElement : roundEnv.getRootElements()){
             analyseTreeOfClass(annotatedElement);
-            printElem(annotatedElement, 0);
         }
+
+
         return true;
     }
 
     private void analyseTreeOfClass(Element annotatedElement ){
-        CodeTreeAnalyzer analyzer = new CodeTreeAnalyzer(messager);
+        CodeTreeAnalyzer analyzer = new CodeTreeAnalyzer();
         TreePath path = trees.getPath(annotatedElement);
         analyzer.scan(path, trees);
     }
 
-    private void printElem(Element elem, int depth){
-        messager.printMessage(Diagnostic.Kind.WARNING,
-                depth + " " + elem.getSimpleName() + " " + elem.getModifiers().toString()
-                        + " " +elem.asType() + " " + elem.getKind() );
-
-        depth++;
+    private void walkElementTree(Element elem){
+        try {
+            policy.verifyTargetElements(elem, targets);
+        } catch (ChannelPolicyException e){
+            Logger.e(elem, e);
+        }
         for(Element element : elem.getEnclosedElements()){
-            printElem(element, depth);
+            walkElementTree(element);
         }
     }
 
@@ -71,6 +89,7 @@ public class ChannelProcessor extends AbstractProcessor {
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> annotataions = new LinkedHashSet<String>();
         annotataions.add(MyAnnotation.class.getCanonicalName());
+        annotataions.add(Channel.class.getCanonicalName());
         return annotataions;
     }
 
@@ -78,4 +97,6 @@ public class ChannelProcessor extends AbstractProcessor {
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.RELEASE_7;
     }
+
+
 }
